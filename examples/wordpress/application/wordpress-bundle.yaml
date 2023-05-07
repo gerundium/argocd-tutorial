@@ -1,0 +1,68 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: wordpress-rds
+  labels:
+    app: wordpress-rds
+spec:
+  ports:
+    - port: 80
+  selector:
+    app: wordpress-rds
+    tier: frontend-rds
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: wp-pv-claim-rds
+  labels:
+    app: wordpress-rds
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1 #  for k8s versions before 1.9.0 use apps/v1beta2  and before 1.8.0 use extensions/v1beta1
+kind: Deployment
+metadata:
+  name: wordpress-rds
+  labels:
+    app: wordpress-rds
+spec:
+  selector:
+    matchLabels:
+      app: wordpress-rds
+      tier: frontend-rds
+  strategy:
+    type: Recreate
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: wordpress-rds
+        tier: frontend-rds
+    spec:
+      containers:
+        - image: wordpress:5.7.0-apache
+          name: wordpress-rds
+          env:
+            - name: WORDPRESS_DB_HOST
+              value: devopsinterview.cw7qgk28g9tl.us-east-1.rds.amazonaws.com
+            - name: WORDPRESS_DB_NAME
+              value: devopsinterview
+            - name: WORDPRESS_DB_USER
+              value: devopsinterview
+            - name: WORDPRESS_DB_PASSWORD
+              value: d3v0ps-1nt3rv13w
+          ports:
+            - containerPort: 80
+              name: wordpress-rds
+          volumeMounts:
+            - name: wordpress-rds-persistent-storage
+              mountPath: /var/www/html
+      volumes:
+        - name: wordpress-rds-persistent-storage
+          persistentVolumeClaim:
+            claimName: wp-pv-claim-rds
