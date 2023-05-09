@@ -7,7 +7,7 @@ spec:
   destination:
     namespace: dbc
     server: https://kubernetes.default.svc
-  project: default
+  project: dbc
   source:
     path: examples/wordpress/application
     repoURL: https://github.com/gerundium/argocd-tutorial.git
